@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
 
 const MOCK_POSTS = [
   {
@@ -72,6 +74,19 @@ const MOCK_MESSAGES = [
   { id: 3, name: 'Елена Луна', avatar: '👩‍💼', lastMessage: 'Давай созвонимся завтра', time: '2 часа', unread: 1 }
 ];
 
+type Post = {
+  id: number;
+  author: { name: string; avatar: string; username: string };
+  content: string;
+  image?: string;
+  video?: boolean;
+  likes: number;
+  comments: number;
+  time: string;
+  type: string;
+  commentsList?: { author: string; avatar: string; text: string; time: string }[];
+};
+
 export default function Index() {
   const [activeTab, setActiveTab] = useState('feed');
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
@@ -79,6 +94,10 @@ export default function Index() {
   const [newPost, setNewPost] = useState('');
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [messageText, setMessageText] = useState('');
+  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const [showNewPostDialog, setShowNewPostDialog] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<number | null>(null);
+  const [commentTexts, setCommentTexts] = useState<Record<number, string>>({});
 
   const toggleLike = (postId: number) => {
     setLikedPosts(prev => 
@@ -90,6 +109,53 @@ export default function Index() {
     setFollowedUsers(prev => 
       prev.includes(username) ? prev.filter(u => u !== username) : [...prev, username]
     );
+  };
+
+  const handleCreatePost = () => {
+    if (newPost.trim()) {
+      const post: Post = {
+        id: posts.length + 1,
+        author: { name: 'Вы', avatar: '🚀', username: '@your_username' },
+        content: newPost,
+        likes: 0,
+        comments: 0,
+        time: 'только что',
+        type: 'text',
+        commentsList: []
+      };
+      setPosts([post, ...posts]);
+      setNewPost('');
+      setShowNewPostDialog(false);
+      toast({ title: 'Пост опубликован!', description: 'Ваш пост появился в ленте' });
+    }
+  };
+
+  const handleAddComment = (postId: number) => {
+    const commentText = commentTexts[postId]?.trim();
+    if (commentText) {
+      setPosts(posts.map(post => {
+        if (post.id === postId) {
+          const newComment = {
+            author: 'Вы',
+            avatar: '🚀',
+            text: commentText,
+            time: 'только что'
+          };
+          return {
+            ...post,
+            comments: post.comments + 1,
+            commentsList: [...(post.commentsList || []), newComment]
+          };
+        }
+        return post;
+      }));
+      setCommentTexts({ ...commentTexts, [postId]: '' });
+      toast({ title: 'Комментарий добавлен!' });
+    }
+  };
+
+  const toggleComments = (postId: number) => {
+    setExpandedComments(expandedComments === postId ? null : postId);
   };
 
   return (
@@ -126,9 +192,46 @@ export default function Index() {
               ))}
             </nav>
 
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-              <Icon name="Plus" size={20} />
-            </Button>
+            <Dialog open={showNewPostDialog} onOpenChange={setShowNewPostDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Icon name="Plus" size={20} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Создать пост</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Textarea
+                    placeholder="Что нового?"
+                    className="min-h-[150px] resize-none"
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
+                  />
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" className="text-purple-600">
+                        <Icon name="Image" size={18} />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-pink-600">
+                        <Icon name="Video" size={18} />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-orange-600">
+                        <Icon name="Smile" size={18} />
+                      </Button>
+                    </div>
+                    <Button 
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      onClick={handleCreatePost}
+                      disabled={!newPost.trim()}
+                    >
+                      Опубликовать
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </header>
 
@@ -207,7 +310,11 @@ export default function Index() {
                             <Icon name="Smile" size={18} />
                           </Button>
                         </div>
-                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                        <Button 
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          onClick={handleCreatePost}
+                          disabled={!newPost.trim()}
+                        >
                           Опубликовать
                         </Button>
                       </div>
@@ -215,7 +322,7 @@ export default function Index() {
                   </div>
                 </Card>
 
-                {MOCK_POSTS.map(post => (
+                {posts.map(post => (
                   <Card key={post.id} className="border-0 shadow-lg overflow-hidden bg-white/90 backdrop-blur hover:shadow-xl transition-shadow">
                     <div className="p-4">
                       <div className="flex items-start gap-3 mb-3">
@@ -265,7 +372,11 @@ export default function Index() {
                           <Icon name={likedPosts.includes(post.id) ? 'Heart' : 'Heart'} size={18} />
                           <span className="ml-2">{post.likes + (likedPosts.includes(post.id) ? 1 : 0)}</span>
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => toggleComments(post.id)}
+                        >
                           <Icon name="MessageCircle" size={18} />
                           <span className="ml-2">{post.comments}</span>
                         </Button>
@@ -276,6 +387,55 @@ export default function Index() {
                           <Icon name="Share2" size={18} />
                         </Button>
                       </div>
+
+                      {expandedComments === post.id && (
+                        <div className="mt-4 space-y-3">
+                          <Separator />
+                          <div className="space-y-3 max-h-60 overflow-y-auto">
+                            {post.commentsList && post.commentsList.length > 0 ? (
+                              post.commentsList.map((comment, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                  <Avatar className="w-8 h-8">
+                                    <AvatarFallback className="bg-gradient-to-br from-purple-300 to-pink-300 text-white text-sm">
+                                      {comment.avatar}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="bg-purple-50 rounded-lg px-3 py-2">
+                                      <div className="font-semibold text-sm">{comment.author}</div>
+                                      <p className="text-sm">{comment.text}</p>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground ml-2">{comment.time}</span>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-muted-foreground text-center py-2">Пока нет комментариев</p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Написать комментарий..."
+                              value={commentTexts[post.id] || ''}
+                              onChange={(e) => setCommentTexts({ ...commentTexts, [post.id]: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleAddComment(post.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              size="sm"
+                              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                              onClick={() => handleAddComment(post.id)}
+                              disabled={!commentTexts[post.id]?.trim()}
+                            >
+                              <Icon name="Send" size={16} />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 ))}
