@@ -12,47 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 
-const MOCK_POSTS = [
-  {
-    id: 1,
-    author: { name: 'Анна Космос', avatar: '👩‍🚀', username: '@anna_space' },
-    content: 'Невероятный закат сегодня! Природа — лучший художник 🌅',
-    image: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600',
-    likes: 234,
-    comments: 18,
-    time: '2 часа назад',
-    type: 'image'
-  },
-  {
-    id: 2,
-    author: { name: 'Дмитрий Звезда', avatar: '👨‍🚀', username: '@dmitry_star' },
-    content: 'Новое видео о путешествии по Европе уже на канале! Смотрите и делитесь впечатлениями 🎬✨',
-    video: true,
-    likes: 567,
-    comments: 45,
-    time: '5 часов назад',
-    type: 'video'
-  },
-  {
-    id: 3,
-    author: { name: 'Елена Луна', avatar: '👩‍💼', username: '@elena_moon' },
-    content: 'Запускаем новый проект! Кто со мной? 🚀 #стартап #инновации',
-    likes: 892,
-    comments: 67,
-    time: '8 часов назад',
-    type: 'text'
-  },
-  {
-    id: 4,
-    author: { name: 'Алексей Астро', avatar: '🧑‍🔬', username: '@alex_astro' },
-    content: 'Фотография туманности Ориона через мой телескоп. Космос прекрасен! 🌌',
-    image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=600',
-    likes: 1203,
-    comments: 89,
-    time: '12 часов назад',
-    type: 'image'
-  }
-];
+const MOCK_POSTS: Post[] = [];
 
 const MOCK_TRENDS = [
   { tag: '#космос', posts: '12.3к постов' },
