@@ -742,6 +742,20 @@ export default function Index() {
             ))}
           </div>
         </nav>
+
+        <footer className="hidden md:block mt-12 pb-6 text-center text-sm text-muted-foreground">
+          <div className="flex items-center justify-center gap-4">
+            <a href="/privacy" className="hover:text-purple-600 transition-colors">
+              Политика конфиденциальности
+            </a>
+            <span>•</span>
+            <a href="/terms" className="hover:text-purple-600 transition-colors">
+              Правила пользования
+            </a>
+            <span>•</span>
+            <span>© 2024 МИР</span>
+          </div>
+        </footer>
       </div>
     </div>
   );
