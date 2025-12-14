@@ -1,14 +1,616 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Icon from '@/components/ui/icon';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-const Index = () => {
+const MOCK_POSTS = [
+  {
+    id: 1,
+    author: { name: 'Анна Космос', avatar: '👩‍🚀', username: '@anna_space' },
+    content: 'Невероятный закат сегодня! Природа — лучший художник 🌅',
+    image: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600',
+    likes: 234,
+    comments: 18,
+    time: '2 часа назад',
+    type: 'image'
+  },
+  {
+    id: 2,
+    author: { name: 'Дмитрий Звезда', avatar: '👨‍🚀', username: '@dmitry_star' },
+    content: 'Новое видео о путешествии по Европе уже на канале! Смотрите и делитесь впечатлениями 🎬✨',
+    video: true,
+    likes: 567,
+    comments: 45,
+    time: '5 часов назад',
+    type: 'video'
+  },
+  {
+    id: 3,
+    author: { name: 'Елена Луна', avatar: '👩‍💼', username: '@elena_moon' },
+    content: 'Запускаем новый проект! Кто со мной? 🚀 #стартап #инновации',
+    likes: 892,
+    comments: 67,
+    time: '8 часов назад',
+    type: 'text'
+  },
+  {
+    id: 4,
+    author: { name: 'Алексей Астро', avatar: '🧑‍🔬', username: '@alex_astro' },
+    content: 'Фотография туманности Ориона через мой телескоп. Космос прекрасен! 🌌',
+    image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=600',
+    likes: 1203,
+    comments: 89,
+    time: '12 часов назад',
+    type: 'image'
+  }
+];
+
+const MOCK_TRENDS = [
+  { tag: '#космос', posts: '12.3к постов' },
+  { tag: '#путешествия', posts: '8.7к постов' },
+  { tag: '#технологии', posts: '6.5к постов' },
+  { tag: '#искусство', posts: '5.2к постов' },
+  { tag: '#наука', posts: '4.8к постов' }
+];
+
+const MOCK_USERS = [
+  { name: 'Мария Галактика', username: '@maria_galaxy', avatar: '👩‍🎨', followers: '15.2k' },
+  { name: 'Иван Комета', username: '@ivan_comet', avatar: '👨‍💻', followers: '12.8k' },
+  { name: 'Ольга Небо', username: '@olga_sky', avatar: '👩‍🏫', followers: '10.5k' }
+];
+
+const MOCK_MESSAGES = [
+  { id: 1, name: 'Анна Космос', avatar: '👩‍🚀', lastMessage: 'Привет! Как дела?', time: '10 мин', unread: 2 },
+  { id: 2, name: 'Дмитрий Звезда', avatar: '👨‍🚀', lastMessage: 'Смотрел твой пост, круто!', time: '1 час', unread: 0 },
+  { id: 3, name: 'Елена Луна', avatar: '👩‍💼', lastMessage: 'Давай созвонимся завтра', time: '2 часа', unread: 1 }
+];
+
+export default function Index() {
+  const [activeTab, setActiveTab] = useState('feed');
+  const [likedPosts, setLikedPosts] = useState<number[]>([]);
+  const [followedUsers, setFollowedUsers] = useState<string[]>([]);
+  const [newPost, setNewPost] = useState('');
+  const [selectedChat, setSelectedChat] = useState<number | null>(null);
+  const [messageText, setMessageText] = useState('');
+
+  const toggleLike = (postId: number) => {
+    setLikedPosts(prev => 
+      prev.includes(postId) ? prev.filter(id => id !== postId) : [...prev, postId]
+    );
+  };
+
+  const toggleFollow = (username: string) => {
+    setFollowedUsers(prev => 
+      prev.includes(username) ? prev.filter(u => u !== username) : [...prev, username]
+    );
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+      <div className="max-w-7xl mx-auto">
+        <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-purple-100">
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                МИР
+              </div>
+              <Badge variant="secondary" className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0">
+                Beta
+              </Badge>
+            </div>
+            
+            <nav className="hidden md:flex items-center gap-2">
+              {[
+                { id: 'feed', icon: 'Home', label: 'Лента' },
+                { id: 'search', icon: 'Search', label: 'Поиск' },
+                { id: 'trends', icon: 'TrendingUp', label: 'Тренды' },
+                { id: 'messages', icon: 'MessageCircle', label: 'Сообщения' },
+                { id: 'profile', icon: 'User', label: 'Профиль' }
+              ].map(item => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? 'default' : 'ghost'}
+                  className={activeTab === item.id ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <Icon name={item.icon} size={20} />
+                  <span className="ml-2 hidden lg:inline">{item.label}</span>
+                </Button>
+              ))}
+            </nav>
+
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <Icon name="Plus" size={20} />
+            </Button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4">
+          {activeTab === 'feed' && (
+            <>
+              <div className="lg:col-span-3 space-y-4">
+                <Card className="p-6 border-0 shadow-lg bg-white/90 backdrop-blur">
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <Avatar className="w-20 h-20 border-4 border-purple-200">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-2xl">
+                        🚀
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-bold text-lg">Вы</h3>
+                      <p className="text-sm text-muted-foreground">@your_username</p>
+                    </div>
+                    <div className="flex gap-6 text-center">
+                      <div>
+                        <div className="font-bold text-lg">245</div>
+                        <div className="text-xs text-muted-foreground">Постов</div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg">1.2k</div>
+                        <div className="text-xs text-muted-foreground">Подписчиков</div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg">356</div>
+                        <div className="text-xs text-muted-foreground">Подписок</div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4 border-0 shadow-lg bg-white/90 backdrop-blur">
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <Icon name="TrendingUp" size={18} className="text-purple-600" />
+                    Популярное
+                  </h3>
+                  <div className="space-y-2">
+                    {MOCK_TRENDS.slice(0, 3).map((trend, i) => (
+                      <div key={i} className="p-2 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
+                        <div className="font-semibold text-sm text-purple-600">{trend.tag}</div>
+                        <div className="text-xs text-muted-foreground">{trend.posts}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              <div className="lg:col-span-6 space-y-4">
+                <Card className="p-4 border-0 shadow-lg bg-white/90 backdrop-blur">
+                  <div className="flex gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                        🚀
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Textarea
+                        placeholder="Что нового?"
+                        className="min-h-[80px] border-0 focus-visible:ring-0 resize-none"
+                        value={newPost}
+                        onChange={(e) => setNewPost(e.target.value)}
+                      />
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" className="text-purple-600">
+                            <Icon name="Image" size={18} />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-pink-600">
+                            <Icon name="Video" size={18} />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-orange-600">
+                            <Icon name="Smile" size={18} />
+                          </Button>
+                        </div>
+                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                          Опубликовать
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {MOCK_POSTS.map(post => (
+                  <Card key={post.id} className="border-0 shadow-lg overflow-hidden bg-white/90 backdrop-blur hover:shadow-xl transition-shadow">
+                    <div className="p-4">
+                      <div className="flex items-start gap-3 mb-3">
+                        <Avatar>
+                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-lg">
+                            {post.author.avatar}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{post.author.name}</span>
+                            <span className="text-sm text-muted-foreground">{post.author.username}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{post.time}</span>
+                        </div>
+                        <Button size="sm" variant="ghost">
+                          <Icon name="MoreHorizontal" size={18} />
+                        </Button>
+                      </div>
+
+                      <p className="mb-3 text-foreground">{post.content}</p>
+
+                      {post.type === 'image' && post.image && (
+                        <div className="rounded-xl overflow-hidden mb-3">
+                          <img src={post.image} alt="Post" className="w-full h-auto" />
+                        </div>
+                      )}
+
+                      {post.type === 'video' && (
+                        <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl p-12 mb-3 flex items-center justify-center">
+                          <div className="text-center">
+                            <Icon name="Play" size={48} className="text-purple-600 mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">Видео контент</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <Separator className="my-3" />
+
+                      <div className="flex items-center justify-between">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={likedPosts.includes(post.id) ? 'text-pink-600' : ''}
+                          onClick={() => toggleLike(post.id)}
+                        >
+                          <Icon name={likedPosts.includes(post.id) ? 'Heart' : 'Heart'} size={18} />
+                          <span className="ml-2">{post.likes + (likedPosts.includes(post.id) ? 1 : 0)}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Icon name="MessageCircle" size={18} />
+                          <span className="ml-2">{post.comments}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Icon name="Repeat2" size={18} />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Icon name="Share2" size={18} />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="lg:col-span-3 space-y-4">
+                <Card className="p-4 border-0 shadow-lg bg-white/90 backdrop-blur">
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <Icon name="Users" size={18} className="text-purple-600" />
+                    Рекомендации
+                  </h3>
+                  <div className="space-y-3">
+                    {MOCK_USERS.map(user => (
+                      <div key={user.username} className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                            {user.avatar}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm truncate">{user.name}</div>
+                          <div className="text-xs text-muted-foreground">{user.followers}</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={followedUsers.includes(user.username) ? 'outline' : 'default'}
+                          className={!followedUsers.includes(user.username) ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+                          onClick={() => toggleFollow(user.username)}
+                        >
+                          {followedUsers.includes(user.username) ? 'Подписан' : 'Подписаться'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'search' && (
+            <div className="lg:col-span-12">
+              <Card className="p-6 border-0 shadow-lg bg-white/90 backdrop-blur">
+                <div className="max-w-2xl mx-auto space-y-6">
+                  <div className="relative">
+                    <Icon name="Search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Поиск людей, постов, тегов..."
+                      className="pl-10 h-12 text-lg border-2 border-purple-100 focus-visible:border-purple-300"
+                    />
+                  </div>
+
+                  <Tabs defaultValue="users" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="users">Пользователи</TabsTrigger>
+                      <TabsTrigger value="posts">Посты</TabsTrigger>
+                      <TabsTrigger value="tags">Теги</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="users" className="space-y-3 mt-6">
+                      {MOCK_USERS.map(user => (
+                        <div key={user.username} className="flex items-center gap-4 p-4 rounded-lg hover:bg-purple-50 transition-colors">
+                          <Avatar className="w-12 h-12">
+                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-lg">
+                              {user.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="font-semibold">{user.name}</div>
+                            <div className="text-sm text-muted-foreground">{user.username}</div>
+                          </div>
+                          <Button
+                            variant={followedUsers.includes(user.username) ? 'outline' : 'default'}
+                            className={!followedUsers.includes(user.username) ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+                            onClick={() => toggleFollow(user.username)}
+                          >
+                            {followedUsers.includes(user.username) ? 'Подписан' : 'Подписаться'}
+                          </Button>
+                        </div>
+                      ))}
+                    </TabsContent>
+                    <TabsContent value="posts">
+                      <p className="text-center text-muted-foreground py-8">Введите запрос для поиска постов</p>
+                    </TabsContent>
+                    <TabsContent value="tags" className="space-y-2 mt-6">
+                      {MOCK_TRENDS.map((trend, i) => (
+                        <div key={i} className="p-4 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
+                          <div className="font-semibold text-purple-600">{trend.tag}</div>
+                          <div className="text-sm text-muted-foreground">{trend.posts}</div>
+                        </div>
+                      ))}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'trends' && (
+            <div className="lg:col-span-12">
+              <Card className="p-6 border-0 shadow-lg bg-white/90 backdrop-blur">
+                <div className="max-w-3xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <Icon name="TrendingUp" size={28} className="text-purple-600" />
+                    Актуальные тренды
+                  </h2>
+                  <div className="space-y-3">
+                    {MOCK_TRENDS.map((trend, i) => (
+                      <div key={i} className="p-5 rounded-xl hover:bg-purple-50 cursor-pointer transition-all hover:shadow-md border border-purple-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-bold text-lg text-purple-600 mb-1">{trend.tag}</div>
+                            <div className="text-sm text-muted-foreground">{trend.posts}</div>
+                          </div>
+                          <Badge variant="secondary" className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0">
+                            #{i + 1}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'messages' && (
+            <div className="lg:col-span-12">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-3 h-[600px]">
+                  <div className="border-r border-purple-100">
+                    <div className="p-4 border-b border-purple-100">
+                      <h3 className="font-bold text-lg">Сообщения</h3>
+                    </div>
+                    <ScrollArea className="h-[540px]">
+                      {MOCK_MESSAGES.map(msg => (
+                        <div
+                          key={msg.id}
+                          className={`p-4 border-b border-purple-50 cursor-pointer hover:bg-purple-50 transition-colors ${
+                            selectedChat === msg.id ? 'bg-purple-50' : ''
+                          }`}
+                          onClick={() => setSelectedChat(msg.id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-lg">
+                                {msg.avatar}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-semibold text-sm truncate">{msg.name}</span>
+                                <span className="text-xs text-muted-foreground">{msg.time}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm text-muted-foreground truncate">{msg.lastMessage}</p>
+                                {msg.unread > 0 && (
+                                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-xs">
+                                    {msg.unread}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </ScrollArea>
+                  </div>
+
+                  <div className="md:col-span-2 flex flex-col">
+                    {selectedChat ? (
+                      <>
+                        <div className="p-4 border-b border-purple-100 flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                              {MOCK_MESSAGES.find(m => m.id === selectedChat)?.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-semibold">{MOCK_MESSAGES.find(m => m.id === selectedChat)?.name}</div>
+                            <div className="text-xs text-muted-foreground">В сети</div>
+                          </div>
+                        </div>
+
+                        <ScrollArea className="flex-1 p-4">
+                          <div className="space-y-4">
+                            <div className="flex gap-3">
+                              <Avatar className="w-8 h-8">
+                                <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-sm">
+                                  {MOCK_MESSAGES.find(m => m.id === selectedChat)?.avatar}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="bg-purple-50 rounded-2xl rounded-tl-sm px-4 py-2 max-w-[70%]">
+                                <p className="text-sm">{MOCK_MESSAGES.find(m => m.id === selectedChat)?.lastMessage}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl rounded-tr-sm px-4 py-2 max-w-[70%]">
+                                <p className="text-sm">Привет! Спасибо, рад что понравилось! 😊</p>
+                              </div>
+                            </div>
+                          </div>
+                        </ScrollArea>
+
+                        <div className="p-4 border-t border-purple-100">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Написать сообщение..."
+                              value={messageText}
+                              onChange={(e) => setMessageText(e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                              <Icon name="Send" size={18} />
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                        <div className="text-center">
+                          <Icon name="MessageCircle" size={48} className="mx-auto mb-3 text-purple-300" />
+                          <p>Выберите чат для начала общения</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'profile' && (
+            <div className="lg:col-span-12">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur overflow-hidden">
+                <div className="h-48 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400"></div>
+                <div className="px-6 pb-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-end gap-6 -mt-16 mb-6">
+                    <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-5xl">
+                        🚀
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold mb-1">Ваше Имя</h2>
+                      <p className="text-muted-foreground mb-3">@your_username</p>
+                      <p className="text-sm mb-4">Исследователь космоса и энтузиаст технологий 🌌✨</p>
+                      <div className="flex gap-6">
+                        <div>
+                          <span className="font-bold text-lg">245</span>
+                          <span className="text-muted-foreground text-sm ml-1">Постов</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-lg">1.2k</span>
+                          <span className="text-muted-foreground text-sm ml-1">Подписчиков</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-lg">356</span>
+                          <span className="text-muted-foreground text-sm ml-1">Подписок</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                      Редактировать профиль
+                    </Button>
+                  </div>
+
+                  <Tabs defaultValue="posts" className="w-full">
+                    <TabsList>
+                      <TabsTrigger value="posts">Посты</TabsTrigger>
+                      <TabsTrigger value="media">Медиа</TabsTrigger>
+                      <TabsTrigger value="likes">Понравилось</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="posts" className="mt-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {MOCK_POSTS.slice(0, 6).map(post => (
+                          <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                            {post.image && (
+                              <img src={post.image} alt="Post" className="w-full h-48 object-cover" />
+                            )}
+                            {!post.image && (
+                              <div className="bg-gradient-to-br from-purple-100 to-pink-100 h-48 flex items-center justify-center">
+                                <Icon name={post.type === 'video' ? 'Video' : 'FileText'} size={48} className="text-purple-400" />
+                              </div>
+                            )}
+                            <div className="p-3">
+                              <p className="text-sm line-clamp-2">{post.content}</p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Icon name="Heart" size={14} />
+                                  {post.likes}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Icon name="MessageCircle" size={14} />
+                                  {post.comments}
+                                </span>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="media">
+                      <p className="text-center text-muted-foreground py-8">Медиафайлы появятся здесь</p>
+                    </TabsContent>
+                    <TabsContent value="likes">
+                      <p className="text-center text-muted-foreground py-8">Понравившиеся посты появятся здесь</p>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </Card>
+            </div>
+          )}
+        </div>
+
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-purple-100 px-4 py-3">
+          <div className="flex items-center justify-around">
+            {[
+              { id: 'feed', icon: 'Home' },
+              { id: 'search', icon: 'Search' },
+              { id: 'trends', icon: 'TrendingUp' },
+              { id: 'messages', icon: 'MessageCircle' },
+              { id: 'profile', icon: 'User' }
+            ].map(item => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="icon"
+                className={activeTab === item.id ? 'text-purple-600' : 'text-gray-500'}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <Icon name={item.icon} size={24} />
+              </Button>
+            ))}
+          </div>
+        </nav>
       </div>
     </div>
   );
-};
-
-export default Index;
+}
