@@ -62,11 +62,7 @@ const MOCK_TRENDS = [
   { tag: '#наука', posts: '4.8к постов' }
 ];
 
-const MOCK_USERS = [
-  { name: 'Мария Галактика', username: '@maria_galaxy', avatar: '👩‍🎨', followers: '15.2k' },
-  { name: 'Иван Комета', username: '@ivan_comet', avatar: '👨‍💻', followers: '12.8k' },
-  { name: 'Ольга Небо', username: '@olga_sky', avatar: '👩‍🏫', followers: '10.5k' }
-];
+const MOCK_USERS: { name: string; username: string; avatar: string; followers: string }[] = [];
 
 const MOCK_MESSAGES = [
   { id: 1, name: 'Анна Космос', avatar: '👩‍🚀', lastMessage: 'Привет! Как дела?', time: '10 мин', unread: 2 },
@@ -252,15 +248,15 @@ export default function Index() {
                     </div>
                     <div className="flex gap-6 text-center">
                       <div>
-                        <div className="font-bold text-lg">245</div>
+                        <div className="font-bold text-lg">{posts.filter(p => p.author.username === '@your_username').length}</div>
                         <div className="text-xs text-muted-foreground">Постов</div>
                       </div>
                       <div>
-                        <div className="font-bold text-lg">1.2k</div>
+                        <div className="font-bold text-lg">0</div>
                         <div className="text-xs text-muted-foreground">Подписчиков</div>
                       </div>
                       <div>
-                        <div className="font-bold text-lg">356</div>
+                        <div className="font-bold text-lg">{followedUsers.length}</div>
                         <div className="text-xs text-muted-foreground">Подписок</div>
                       </div>
                     </div>
@@ -448,27 +444,33 @@ export default function Index() {
                     Рекомендации
                   </h3>
                   <div className="space-y-3">
-                    {MOCK_USERS.map(user => (
-                      <div key={user.username} className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
-                            {user.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm truncate">{user.name}</div>
-                          <div className="text-xs text-muted-foreground">{user.followers}</div>
+                    {MOCK_USERS.length > 0 ? (
+                      MOCK_USERS.map(user => (
+                        <div key={user.username} className="flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                              {user.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-sm truncate">{user.name}</div>
+                            <div className="text-xs text-muted-foreground">{user.followers}</div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant={followedUsers.includes(user.username) ? 'outline' : 'default'}
+                            className={!followedUsers.includes(user.username) ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+                            onClick={() => toggleFollow(user.username)}
+                          >
+                            {followedUsers.includes(user.username) ? 'Подписан' : 'Подписаться'}
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          variant={followedUsers.includes(user.username) ? 'outline' : 'default'}
-                          className={!followedUsers.includes(user.username) ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
-                          onClick={() => toggleFollow(user.username)}
-                        >
-                          {followedUsers.includes(user.username) ? 'Подписан' : 'Подписаться'}
-                        </Button>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Рекомендации появятся позже
+                      </p>
+                    )}
                   </div>
                 </Card>
               </div>
@@ -494,26 +496,30 @@ export default function Index() {
                       <TabsTrigger value="tags">Теги</TabsTrigger>
                     </TabsList>
                     <TabsContent value="users" className="space-y-3 mt-6">
-                      {MOCK_USERS.map(user => (
-                        <div key={user.username} className="flex items-center gap-4 p-4 rounded-lg hover:bg-purple-50 transition-colors">
-                          <Avatar className="w-12 h-12">
-                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-lg">
-                              {user.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="font-semibold">{user.name}</div>
-                            <div className="text-sm text-muted-foreground">{user.username}</div>
+                      {MOCK_USERS.length > 0 ? (
+                        MOCK_USERS.map(user => (
+                          <div key={user.username} className="flex items-center gap-4 p-4 rounded-lg hover:bg-purple-50 transition-colors">
+                            <Avatar className="w-12 h-12">
+                              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-lg">
+                                {user.avatar}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="font-semibold">{user.name}</div>
+                              <div className="text-sm text-muted-foreground">{user.username}</div>
+                            </div>
+                            <Button
+                              variant={followedUsers.includes(user.username) ? 'outline' : 'default'}
+                              className={!followedUsers.includes(user.username) ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+                              onClick={() => toggleFollow(user.username)}
+                            >
+                              {followedUsers.includes(user.username) ? 'Подписан' : 'Подписаться'}
+                            </Button>
                           </div>
-                          <Button
-                            variant={followedUsers.includes(user.username) ? 'outline' : 'default'}
-                            className={!followedUsers.includes(user.username) ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
-                            onClick={() => toggleFollow(user.username)}
-                          >
-                            {followedUsers.includes(user.username) ? 'Подписан' : 'Подписаться'}
-                          </Button>
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-center text-muted-foreground py-8">Введите запрос для поиска пользователей</p>
+                      )}
                     </TabsContent>
                     <TabsContent value="posts">
                       <p className="text-center text-muted-foreground py-8">Введите запрос для поиска постов</p>
@@ -683,15 +689,15 @@ export default function Index() {
                       <p className="text-sm mb-4">Исследователь космоса и энтузиаст технологий 🌌✨</p>
                       <div className="flex gap-6">
                         <div>
-                          <span className="font-bold text-lg">245</span>
+                          <span className="font-bold text-lg">{posts.filter(p => p.author.username === '@your_username').length}</span>
                           <span className="text-muted-foreground text-sm ml-1">Постов</span>
                         </div>
                         <div>
-                          <span className="font-bold text-lg">1.2k</span>
+                          <span className="font-bold text-lg">0</span>
                           <span className="text-muted-foreground text-sm ml-1">Подписчиков</span>
                         </div>
                         <div>
-                          <span className="font-bold text-lg">356</span>
+                          <span className="font-bold text-lg">{followedUsers.length}</span>
                           <span className="text-muted-foreground text-sm ml-1">Подписок</span>
                         </div>
                       </div>
@@ -709,31 +715,37 @@ export default function Index() {
                     </TabsList>
                     <TabsContent value="posts" className="mt-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {MOCK_POSTS.slice(0, 6).map(post => (
-                          <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                            {post.image && (
-                              <img src={post.image} alt="Post" className="w-full h-48 object-cover" />
-                            )}
-                            {!post.image && (
-                              <div className="bg-gradient-to-br from-purple-100 to-pink-100 h-48 flex items-center justify-center">
-                                <Icon name={post.type === 'video' ? 'Video' : 'FileText'} size={48} className="text-purple-400" />
+                        {posts.filter(p => p.author.username === '@your_username').length > 0 ? (
+                          posts.filter(p => p.author.username === '@your_username').slice(0, 6).map(post => (
+                            <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                              {post.image && (
+                                <img src={post.image} alt="Post" className="w-full h-48 object-cover" />
+                              )}
+                              {!post.image && (
+                                <div className="bg-gradient-to-br from-purple-100 to-pink-100 h-48 flex items-center justify-center">
+                                  <Icon name={post.type === 'video' ? 'Video' : 'FileText'} size={48} className="text-purple-400" />
+                                </div>
+                              )}
+                              <div className="p-3">
+                                <p className="text-sm line-clamp-2">{post.content}</p>
+                                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Icon name="Heart" size={14} />
+                                    {post.likes}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Icon name="MessageCircle" size={14} />
+                                    {post.comments}
+                                  </span>
+                                </div>
                               </div>
-                            )}
-                            <div className="p-3">
-                              <p className="text-sm line-clamp-2">{post.content}</p>
-                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Icon name="Heart" size={14} />
-                                  {post.likes}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Icon name="MessageCircle" size={14} />
-                                  {post.comments}
-                                </span>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
+                            </Card>
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center py-8 text-muted-foreground">
+                            Вы еще не создали ни одного поста
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                     <TabsContent value="media">
